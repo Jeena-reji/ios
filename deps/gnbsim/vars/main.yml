@@ -1,0 +1,31 @@
+gnbsim:
+  docker:
+    container:
+      image: omecproject/5gc-gnbsim:main-PR_88-cc0d21b
+      prefix: gnbsim
+      count: 2
+    network:
+      macvlan:
+        name: gnbnet
+
+  router:
+    data_iface: ens18
+    macvlan:
+      iface: gnbaccess
+      subnet_prefix: "172.20"
+
+  servers:
+    0:
+      - "config/gnbsim-s1-p1.yaml"
+      - "config/gnbsim-s1-p2.yaml"
+    # 1:
+    #   - "config/gnbsim-s2-p1.yaml"
+    #   - "config/gnbsim-s2-p2.yaml"
+
+core:
+  upf:
+    ip_prefix: "192.168.252.0/24"
+    iface: "access"
+  amf:
+    ip: "172.16.248.6"
+
