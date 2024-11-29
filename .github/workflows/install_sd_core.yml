@@ -10,7 +10,7 @@ on:
       branch_name:
         description: 'The branch name to use'
         required: true
-        default: 'main'
+        default: 'develop'
 
 jobs:
   install:
