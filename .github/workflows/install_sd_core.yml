@@ -6,7 +6,7 @@ on:
       server_ip:
         description: 'The server IP address'
         required: true
-        default: '172.105.57.206'
+        default: ' 192.168.0.1'
       branch_name:
         description: 'The branch name to use'
         required: true
