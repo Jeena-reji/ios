@@ -90,6 +90,9 @@ jobs:
 
       - name: Set up Docker authentication for GHCR
         run: |
+          docker --version
+          docker info
+          docker logout ghcr.io
           echo ${{ secrets.GHCRPASS }} | docker login ghcr.io -u "${{ secrets.GHCRUSER }}" --password-stdin
 
 
