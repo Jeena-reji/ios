@@ -102,13 +102,9 @@ jobs:
       - name: Install Kubernetes
         shell: powershell
         run: |
-          # Check if the file exists before running kubectl
-          if (Test-Path "kubernetes-config.yaml") {
-              Write-Host "Running Kubernetes installation commands"
-              kubectl apply -f kubernetes-config.yaml
-          } else {
-              Write-Host "No Kubernetes config file found. Skipping installation."
-          }
+          # Run kubectl commands for Kubernetes installation
+          Write-Host "Running Kubernetes installation commands"
+          kubectl apply -f kubernetes-config.yaml
 
       - name: Install SD-Core
         shell: powershell
