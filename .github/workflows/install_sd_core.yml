@@ -26,7 +26,7 @@ jobs:
           echo "BRANCH_NAME=${{ github.event.inputs.branch_name }}" >> $GITHUB_ENV
 
       - name: Install Prerequisites
-        shell: pwsh
+        shell: powershell
         run: |
           # Install dependencies via Chocolatey
           choco install git curl python jq -y
@@ -66,7 +66,7 @@ jobs:
           Get-Command jq || Write-Host "jq not found"
 
       - name: Update Configuration Files
-        shell: pwsh
+        shell: powershell
         run: |
           # Replace content of the hosts.ini file (PowerShell version of sed)
           (Get-Content "hosts.ini") | ForEach-Object { $_ -replace "old_value", "new_value" } | Set-Content "hosts.ini"
@@ -76,21 +76,21 @@ jobs:
           Get-Content "hosts.ini"
 
       - name: Install Kubernetes
-        shell: pwsh
+        shell: powershell
         run: |
           # Use the equivalent PowerShell command instead of 'make'
           Write-Host "Running Kubernetes installation commands"
           kubectl apply -f kubernetes-config.yaml  # Example of using kubectl to install Kubernetes components
 
       - name: Install SD-Core
-        shell: pwsh
+        shell: powershell
         run: |
           # Replace 'make' commands with equivalent PowerShell commands (or run specific scripts)
           Write-Host "Running SD-Core installation"
           kubectl get pods -n omec
 
       - name: Install Management Application
-        shell: pwsh
+        shell: powershell
         run: |
           # Similarly replace 'make' command with PowerShell equivalent
           Write-Host "Running Management Application installation"
