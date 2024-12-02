@@ -10,7 +10,7 @@ on:
       branch_name:
         description: 'The branch name to use'
         required: true
-        default: 'main'
+        default: 'develop'
 
 jobs:
   install:
@@ -66,17 +66,17 @@ jobs:
 
           # Verify installed tools
           Write-Host "Verifying installation of tools..."
-          Get-Command git || Write-Host "git not found"
-          Get-Command curl || Write-Host "curl not found"
-          Get-Command python || Write-Host "python not found"
-          Get-Command jq || Write-Host "jq not found"
-          Get-Command docker || Write-Host "docker not found"
+          if (-not (Get-Command git -ErrorAction SilentlyContinue)) { Write-Host "git not found" }
+          if (-not (Get-Command curl -ErrorAction SilentlyContinue)) { Write-Host "curl not found" }
+          if (-not (Get-Command python -ErrorAction SilentlyContinue)) { Write-Host "python not found" }
+          if (-not (Get-Command jq -ErrorAction SilentlyContinue)) { Write-Host "jq not found" }
+          if (-not (Get-Command docker -ErrorAction SilentlyContinue)) { Write-Host "docker not found" }
 
       - name: Debug PATH and Installed Tools
         run: |
           Write-Host "Current PATH: $env:PATH"
-          Get-Command sed || Write-Host "sed not found"
-          Get-Command jq || Write-Host "jq not found"
+          if (-not (Get-Command sed -ErrorAction SilentlyContinue)) { Write-Host "sed not found" }
+          if (-not (Get-Command jq -ErrorAction SilentlyContinue)) { Write-Host "jq not found" }
 
       - name: Update Configuration Files
         shell: powershell
