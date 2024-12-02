@@ -1,4 +1,4 @@
-name: Install SD-Core 5G
+name: GHCR - Install SD-Core 5G
 
 on:
   workflow_dispatch:
@@ -6,11 +6,11 @@ on:
       server_ip:
         description: 'The server IP address'
         required: true
-        default: '192.168.0.1'
+        default: '172.105.57.206'
       branch_name:
         description: 'The branch name to use'
         required: true
-        default: 'develop'
+        default: 'main'
 
 jobs:
   install:
@@ -28,39 +28,52 @@ jobs:
       - name: Install Prerequisites
         shell: powershell
         run: |
-          # Install dependencies via Chocolatey
-          choco install git curl python jq -y
+          # Install Chocolatey if not installed
+          if (-not (Get-Command choco -ErrorAction SilentlyContinue)) {
+              Write-Host "Installing Chocolatey..."
+              Set-ExecutionPolicy Bypass -Scope Process -Force
+              iex ((New-Object System.Net.WebClient).DownloadString('https://community.chocolatey.org/install.ps1'))
+          } else {
+              Write-Host "Chocolatey is already installed."
+          }
 
-          # Upgrade pip and install pipx (for isolated Python environments)
-          python -m pip install --upgrade pip
-          python -m pip install pipx
-          
-          # Try installing ansible using pipx, but handle the case if it's already installed
-          try {
-              pipx install --include-deps ansible 
-          } catch {
-               Write-Host "Ansible is already installed, ignoring the error."
+          # Install required tools if not already installed
+          $tools = @("git", "curl", "python", "jq", "docker")
+          foreach ($tool in $tools) {
+              if (-not (Get-Command $tool -ErrorAction SilentlyContinue)) {
+                  Write-Host "Installing $tool..."
+                  choco install $tool -y
+              } else {
+                  Write-Host "$tool is already installed."
+              }
+          }
+
+          # Install Ansible using pipx if not installed
+          if (-not (Get-Command pipx -ErrorAction SilentlyContinue)) {
+              Write-Host "Installing pipx..."
+              python -m pip install --upgrade pip
+              python -m pip install pipx
+          }
+          if (-not (pipx list | Select-String -Pattern "ansible")) {
+              Write-Host "Installing Ansible..."
+              pipx install --include-deps ansible
+          } else {
+              Write-Host "Ansible is already installed."
           }
 
           # Ensure pipx path is added to environment variables
           pipx ensurepath
-          
-          # Verify if 'make' is available, as it's usually not on Windows
-          # You may install make using Chocolatey if needed
-          if (-not (Get-Command make -ErrorAction SilentlyContinue)) {
-              Write-Host "Make is not installed. You may need to install it."
-          } else {
-              Write-Host "Make is installed."
-          }
 
           # Verify installed tools
-          $env:GITHUB_ENV = "$env:GITHUB_ENV;C:\usr\bin;C:\home\rishi\.local\bin"
-          echo "PATH=$env:GITHUB_ENV" >> $env:GITHUB_ENV
-          Write-Host "Current PATH: $env:PATH"
+          Write-Host "Verifying installation of tools..."
+          Get-Command git || Write-Host "git not found"
+          Get-Command curl || Write-Host "curl not found"
+          Get-Command python || Write-Host "python not found"
+          Get-Command jq || Write-Host "jq not found"
+          Get-Command docker || Write-Host "docker not found"
 
       - name: Debug PATH and Installed Tools
         run: |
-          # Checking the path of installed tools
           Write-Host "Current PATH: $env:PATH"
           Get-Command sed || Write-Host "sed not found"
           Get-Command jq || Write-Host "jq not found"
@@ -68,31 +81,32 @@ jobs:
       - name: Update Configuration Files
         shell: powershell
         run: |
-          # Replace content of the hosts.ini file (PowerShell version of sed)
+          # Update hosts.ini content using PowerShell
           (Get-Content "hosts.ini") | ForEach-Object { $_ -replace "old_value", "new_value" } | Set-Content "hosts.ini"
           
           # Verify the updated hosts.ini content
           Write-Host "Updated hosts.ini content:"
           Get-Content "hosts.ini"
 
+      - name: Set up Docker authentication for GHCR
+        run: |
+          docker login ghcr.io -u "${{ secrets.GHCRUSER }}" --password-stdin <<< "${{ secrets.GHCRPASS }}"
+
       - name: Install Kubernetes
         shell: powershell
         run: |
-          # Use the equivalent PowerShell command instead of 'make'
+          # Replace the 'make' command with a suitable PowerShell equivalent
           Write-Host "Running Kubernetes installation commands"
-          kubectl apply -f kubernetes-config.yaml  # Example of using kubectl to install Kubernetes components
+          kubectl apply -f kubernetes-config.yaml
 
       - name: Install SD-Core
         shell: powershell
         run: |
-          # Replace 'make' commands with equivalent PowerShell commands (or run specific scripts)
           Write-Host "Running SD-Core installation"
           kubectl get pods -n omec
 
       - name: Install Management Application
         shell: powershell
         run: |
-          # Similarly replace 'make' command with PowerShell equivalent
           Write-Host "Running Management Application installation"
           kubectl get pods -n amp
-
