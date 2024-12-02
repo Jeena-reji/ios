@@ -38,7 +38,7 @@ jobs:
           }
 
           # Install required tools if not already installed
-          $tools = @("git", "curl", "python", "jq", "docker")
+          $tools = @("git", "curl", "python", "jq", "docker","kubernetes-cli")
           foreach ($tool in $tools) {
               if (-not (Get-Command $tool -ErrorAction SilentlyContinue)) {
                   Write-Host "Installing $tool..."
