@@ -13,7 +13,7 @@ k8s:
 
 core:
   standalone: "true"
-  data_iface: eth0
+  data_iface: ens18
   values_file: "deps/5gc/roles/core/templates/sdcore-5g-values.yaml"
   ran_subnet: ""
   helm:
@@ -37,7 +37,7 @@ gnbsim:
         name: gnbnet
 
   router:
-    data_iface: eth0
+    data_iface: ens18
     macvlan:
       iface: gnbaccess
       subnet_prefix: "172.20"
