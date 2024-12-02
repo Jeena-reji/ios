@@ -27,8 +27,10 @@ jobs:
 
       - name: Install Prerequisites
         run: |
-          sudo apt-get update -y
-          sudo apt-get install -y git curl make net-tools pipx python3-venv sshpass netplan.io iptables jq sed
+          choco install git curl make python3 jq sed -y
+          python -m pip install --upgrade pip
+          python -m pip install pipx
+          
           try {
               pipx install --include-deps ansible 
           } catch {
