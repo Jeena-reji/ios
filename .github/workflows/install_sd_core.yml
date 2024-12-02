@@ -47,6 +47,14 @@ jobs:
                   Write-Host "$tool is already installed."
               }
           }
+          # Check if Docker is running
+          if (-not (Get-Process -Name 'docker' -ErrorAction SilentlyContinue)) {
+              Write-Host "Docker is not running. Starting Docker..."
+              # Start Docker if it's not running (for self-hosted runners)
+              Start-Service docker
+          }
+
+          
 
           # Install Ansible using pipx if not installed
           if (-not (Get-Command pipx -ErrorAction SilentlyContinue)) {
@@ -90,8 +98,10 @@ jobs:
 
       - name: Set up Docker authentication for GHCR
         run: |
+          echo "GHCRUSER: ${{ secrets.GHCRUSER }}"
+          echo "GHCRPASS: ${{ secrets.GHCRPASS }}"
           
-          echo ${{ secrets.GHCRPASS }} | docker login ghcr.io -u "${{ secrets.GHCRUSER }}" --password-stdin
+          docker login ghcr.io -u ${{ secrets.GHCRUSER }} -p ${{ secrets.GHCRPASS }}
 
 
       - name: Install Kubernetes
