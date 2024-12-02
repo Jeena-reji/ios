@@ -1,4 +1,4 @@
-name: GHCR - Install SD-Core 5G
+name: Install SD-Core 5G
 
 on:
   workflow_dispatch:
@@ -14,7 +14,7 @@ on:
 
 jobs:
   install:
-    runs-on: [self-hosted]  # Using our own self-hosted runner
+    runs-on: [self-hosted]  # Using our own self hosted runner
 
     steps:
       - name: Checkout Code
@@ -26,94 +26,46 @@ jobs:
           echo "BRANCH_NAME=${{ github.event.inputs.branch_name }}" >> $GITHUB_ENV
 
       - name: Install Prerequisites
-        shell: powershell
         run: |
-          # Install Chocolatey if not installed
-          if (-not (Get-Command choco -ErrorAction SilentlyContinue)) {
-              Write-Host "Installing Chocolatey..."
-              Set-ExecutionPolicy Bypass -Scope Process -Force
-              iex ((New-Object System.Net.WebClient).DownloadString('https://community.chocolatey.org/install.ps1'))
-          } else {
-              Write-Host "Chocolatey is already installed."
-          }
-
-          # Install required tools if not already installed
-          $tools = @("git", "curl", "python", "jq", "docker","kubernetes-cli")
-          foreach ($tool in $tools) {
-              if (-not (Get-Command $tool -ErrorAction SilentlyContinue)) {
-                  Write-Host "Installing $tool..."
-                  choco install $tool -y
-              } else {
-                  Write-Host "$tool is already installed."
-              }
-          }
-          
-
-          
-
-          # Install Ansible using pipx if not installed
-          if (-not (Get-Command pipx -ErrorAction SilentlyContinue)) {
-              Write-Host "Installing pipx..."
-              python -m pip install --upgrade pip
-              python -m pip install pipx
-          }
-          if (-not (pipx list | Select-String -Pattern "ansible")) {
-              Write-Host "Installing Ansible..."
-              pipx install --include-deps ansible
-          } else {
-              Write-Host "Ansible is already installed."
-          }
-
-          # Ensure pipx path is added to environment variables
+          sudo apt-get update -y
+          sudo apt-get install -y git curl make net-tools pipx python3-venv sshpass netplan.io iptables jq sed
+          pipx install --include-deps ansible || true  # Ignore if already installed
           pipx ensurepath
-
-          # Verify installed tools
-          Write-Host "Verifying installation of tools..."
-          if (-not (Get-Command git -ErrorAction SilentlyContinue)) { Write-Host "git not found" }
-          if (-not (Get-Command curl -ErrorAction SilentlyContinue)) { Write-Host "curl not found" }
-          if (-not (Get-Command python -ErrorAction SilentlyContinue)) { Write-Host "python not found" }
-          if (-not (Get-Command jq -ErrorAction SilentlyContinue)) { Write-Host "jq not found" }
-          if (-not (Get-Command docker -ErrorAction SilentlyContinue)) { Write-Host "docker not found" }
+          make --version  # Verify make installation
+          echo "PATH=\$PATH:/usr/bin:/home/rishi/.local/bin" >> $GITHUB_ENV
+          source $GITHUB_ENV  # Ensure new PATH is applied
 
       - name: Debug PATH and Installed Tools
         run: |
-          Write-Host "Current PATH: $env:PATH"
-          if (-not (Get-Command sed -ErrorAction SilentlyContinue)) { Write-Host "sed not found" }
-          if (-not (Get-Command jq -ErrorAction SilentlyContinue)) { Write-Host "jq not found" }
+          echo "Current PATH: $PATH"
+          which sed || echo "sed not found"
+          ls -l /usr/bin/sed || echo "/usr/bin/sed not found"
+
 
       - name: Update Configuration Files
-        shell: powershell
+        shell: bash
         run: |
-          # Update hosts.ini content using PowerShell
-          (Get-Content "hosts.ini") | ForEach-Object { $_ -replace "old_value", "new_value" } | Set-Content "hosts.ini"
-          
+          # Replace content of line 2 with the new node1 IP and credentials
+          #sed -i '2s/.*/node1 ansible_host=localhost ansible_user=rishi ansible_password=redhat ansible_sudo_pass=redhat/' hosts.ini
+
+          ##sed -i '3s/^/#/' hosts.ini
+          #sed -i '10s/^/#/' hosts.ini
+          #sed -i '11s/^/#/' hosts.ini
+
           # Verify the updated hosts.ini content
-          Write-Host "Updated hosts.ini content:"
-          Get-Content "hosts.ini"
-
-      - name: Set up Docker authentication for GHCR
-        run: |
-          echo "GHCRUSER: ${{ secrets.GHCRUSER }}"
-          echo "GHCRPASS: ${{ secrets.GHCRPASS }}"
-          
-          docker login ghcr.io -u ${{ secrets.GHCRUSER }} -p ${{ secrets.GHCRPASS }}
-
+          echo "Updated hosts.ini content:"
+          cat hosts.ini
 
       - name: Install Kubernetes
-        shell: powershell
+        shell: bash 
         run: |
-          # Run kubectl commands for Kubernetes installation
-          Write-Host "Running Kubernetes installation commands"
-          kubectl apply -f kubernetes-config.yaml
-
+          make aether-k8s-install  # Running from repo home
+        
       - name: Install SD-Core
-        shell: powershell
         run: |
-          Write-Host "Running SD-Core installation"
+          make aether-5gc-install  # Running from repo home
           kubectl get pods -n omec
 
       - name: Install Management Application
-        shell: powershell
         run: |
-          Write-Host "Running Management Application installation"
-          kubectl get pods -n amp
+          make aether-amp-install  # Running from repo home
