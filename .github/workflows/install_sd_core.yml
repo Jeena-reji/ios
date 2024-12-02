@@ -10,7 +10,7 @@ on:
       branch_name:
         description: 'The branch name to use'
         required: true
-        default: 'develop'
+        default: 'main'
 
 jobs:
   install:
@@ -102,9 +102,13 @@ jobs:
       - name: Install Kubernetes
         shell: powershell
         run: |
-          # Replace the 'make' command with a suitable PowerShell equivalent
-          Write-Host "Running Kubernetes installation commands"
-          kubectl apply -f kubernetes-config.yaml
+          # Check if the file exists before running kubectl
+          if (Test-Path "kubernetes-config.yaml") {
+              Write-Host "Running Kubernetes installation commands"
+              kubectl apply -f kubernetes-config.yaml
+          } else {
+              Write-Host "No Kubernetes config file found. Skipping installation."
+          }
 
       - name: Install SD-Core
         shell: powershell
