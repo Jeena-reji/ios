@@ -13,11 +13,17 @@
   #     depth: 1
   #   register: found_files
   #   become: true
-
-  # - name: find files matching pattern
-  #   shell: basename $(find /*/systemd/network -maxdepth 1 -not -type d -name '*ens18.network' -print)
-  #   register: find_output
-  #   become: true
+ 
+  #- name: Find files matching the pattern
+     # shell: |
+        #NETWORK_FILE=$(find /*/systemd/network -maxdepth 1 -not -type d -name '*ens18.network' -print -quit)
+       # if [ -n "$NETWORK_FILE" ]; then
+            #echo "Found file: $(basename "$NETWORK_FILE")"
+       # else
+            #echo "No matching network file found"
+        #fi
+     # register: find_output
+     # become: true
 
   # - name: print matching file paths
   #   debug:
