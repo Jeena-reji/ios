@@ -90,7 +90,8 @@ jobs:
 
       - name: Set up Docker authentication for GHCR
         run: |
-          docker login ghcr.io -u "${{ secrets.GHCRUSER }}" --password-stdin <<< "${{ secrets.GHCRPASS }}"
+          echo ${{ secrets.GHCRPASS }} | docker login ghcr.io -u "${{ secrets.GHCRUSER }}" --password-stdin
+
 
       - name: Install Kubernetes
         shell: powershell
