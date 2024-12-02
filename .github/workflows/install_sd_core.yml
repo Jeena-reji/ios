@@ -29,10 +29,15 @@ jobs:
         run: |
           sudo apt-get update -y
           sudo apt-get install -y git curl make net-tools pipx python3-venv sshpass netplan.io iptables jq sed
-          pipx install --include-deps ansible || true  # Ignore if already installed
+          try {
+              pipx install --include-deps ansible 
+          } catch {
+               Write-Host "Ansible is already installed, ignoring the error."
+          }
           pipx ensurepath
           make --version  # Verify make installation
-          echo "PATH=\$PATH:/usr/bin:/home/rishi/.local/bin" >> $GITHUB_ENV
+          $env:GITHUB_ENV = "$env:GITHUB_ENV;C:\usr\bin;C:\home\rishi\.local\bin"
+          echo "PATH=$env:GITHUB_ENV" >> $env:GITHUB_ENV
           source $GITHUB_ENV  # Ensure new PATH is applied
 
       - name: Debug PATH and Installed Tools
