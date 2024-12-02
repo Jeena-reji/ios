@@ -47,12 +47,7 @@ jobs:
                   Write-Host "$tool is already installed."
               }
           }
-          # Check if Docker is running
-          if (-not (Get-Process -Name 'docker' -ErrorAction SilentlyContinue)) {
-              Write-Host "Docker is not running. Starting Docker..."
-              # Start Docker if it's not running (for self-hosted runners)
-              Start-Service docker
-          }
+          
 
           
 
