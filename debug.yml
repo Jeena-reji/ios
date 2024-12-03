@@ -16,7 +16,7 @@
  
   #- name: Find files matching the pattern
      # shell: |
-        #NETWORK_FILE=basename$(find /*/systemd/network -maxdepth 1 -not -type d -name '*ens18.network' -print -quit)
+        #NETWORK_FILE=$(find /*/systemd/network -maxdepth 1 -not -type d -name '*ens18.network' -print -quit)
        # if [ -n "$NETWORK_FILE" ]; then
             #echo "Found file: $(basename "$NETWORK_FILE")"
        # else
