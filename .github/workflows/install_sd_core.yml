@@ -63,7 +63,7 @@ jobs:
         
       - name: Install SD-Core
         run: |
-          make aether-5gc-install  # Running from repo home
+          make aether-resetcore  # Running from repo home
           kubectl get pods -n omec
 
       - name: Install Management Application
